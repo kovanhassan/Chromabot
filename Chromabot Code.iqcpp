@@ -1,0 +1,603 @@
+#pragma region VEXcode Generated Robot Configuration 
+// Make sure all required headers are included. 
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <stdbool.h> 
+#include <math.h> 
+#include <string.h> 
+#include "vex.h" 
+using namespace vex; 
+// Brain should be defined by default 
+brain Brain; 
+// START IQ MACROS 
+#define waitUntil(condition)                                                   
+do {                                                                         
+wait(5, msec);                                                             
+} while (!(condition)) 
+#define repeat(iterations)                                                     
+for (int iterator = 0; iterator < iterations; iterator++) 
+// END IQ MACROS 
+// Robot configuration code. 
+inertial BrainInertial = inertial(); 
+touchled TouchLED1 = touchled(PORT1); 
+distance Distance2 = distance(PORT2); 
+optical Optical3 = optical(PORT3); 
+motor GearMotorRight = motor(PORT5, true); 
+motor GearMotorLeft = motor(PORT6, false); 
+motor MotorRight = motor(PORT10, true); 
+motor MotorLeft = motor(PORT9, false); 
+bumper Bumper4 = bumper(PORT4); 
+// generating and setting random seed 
+void initializeRandomSeed(){ 
+wait(100,msec); 
+double xAxis = BrainInertial.acceleration(xaxis) * 1000; 
+double yAxis = BrainInertial.acceleration(yaxis) * 1000; 
+double zAxis = BrainInertial.acceleration(zaxis) * 1000; 
+// Combine these values into a single integer 
+int seed = int( 
+xAxis + yAxis + zAxis 
+); 
+// Set the seed 
+srand(seed); 
+} 
+// Converts a color to a string 
+const char* convertColorToString(color col) { 
+\ 
+\ 
+\ 
+\ 
+33 
+ 
+ 
+  if (col == colorType::red) return "red"; 
+  else if (col == colorType::green) return "green"; 
+  else if (col == colorType::blue) return "blue"; 
+  else if (col == colorType::white) return "white"; 
+  else if (col == colorType::yellow) return "yellow"; 
+  else if (col == colorType::orange) return "orange"; 
+  else if (col == colorType::purple) return "purple"; 
+  else if (col == colorType::cyan) return "cyan"; 
+  else if (col == colorType::black) return "black"; 
+  else if (col == colorType::transparent) return "transparent"; 
+  else if (col == colorType::red_violet) return "red_violet"; 
+  else if (col == colorType::violet) return "violet"; 
+  else if (col == colorType::blue_violet) return "blue_violet"; 
+  else if (col == colorType::blue_green) return "blue_green"; 
+  else if (col == colorType::yellow_green) return "yellow_green"; 
+  else if (col == colorType::yellow_orange) return "yellow_orange"; 
+  else if (col == colorType::red_orange) return "red_orange"; 
+  else if (col == colorType::none) return "none"; 
+  else return "unknown"; 
+} 
+ 
+ 
+// Convert colorType to string 
+const char* convertColorToString(colorType col) { 
+  if (col == colorType::red) return "red"; 
+  else if (col == colorType::green) return "green"; 
+  else if (col == colorType::blue) return "blue"; 
+  else if (col == colorType::white) return "white"; 
+  else if (col == colorType::yellow) return "yellow"; 
+  else if (col == colorType::orange) return "orange"; 
+  else if (col == colorType::purple) return "purple"; 
+  else if (col == colorType::cyan) return "cyan"; 
+  else if (col == colorType::black) return "black"; 
+  else if (col == colorType::transparent) return "transparent"; 
+  else if (col == colorType::red_violet) return "red_violet"; 
+  else if (col == colorType::violet) return "violet"; 
+  else if (col == colorType::blue_violet) return "blue_violet"; 
+  else if (col == colorType::blue_green) return "blue_green"; 
+  else if (col == colorType::yellow_green) return "yellow_green"; 
+  else if (col == colorType::yellow_orange) return "yellow_orange"; 
+  else if (col == colorType::red_orange) return "red_orange"; 
+  else if (col == colorType::none) return "none"; 
+  else return "unknown"; 
+} 
+ 
+ 
+void vexcodeInit() { 
+ 
+  // Initializing random seed. 
+  initializeRandomSeed(); 
+} 
+ 
+#pragma endregion VEXcode Generated Robot Configuration 
+ 
+//---------------------------------------------------------------------------- 
+// 
+//    Module:       main.cpp 
+//    Author:       {author} 
+//    Created:      {date} 
+34 
+//    
+// 
+Description:  IQ project 
+//---------------------------------------------------------------------------- 
+// Include the IQ Library 
+#include "iq_cpp.h" 
+// Allows for easier use of the VEX Library 
+using namespace vex; 
+/*when copying configureAllSensors function to your file, 
+ensure your device is set up with the same names for sensors 
+This function will not work otherwise! 
+*/ 
+//FUNCTION PROTOTYPES 
+void configureAllSensors(); 
+void pressAndRelease(); 
+double calibrateSize(); 
+int countTools(double widthPencil); 
+int colorDetect(); 
+void alignBox(); 
+void drop(); 
+void stopNow(); 
+void timeDisplay(double calibrationTime, double alignTime, int numPencil); 
+void dump(); 
+/* colour counters 
+int redCount = 0; 
+int orange_yellowCount = 0; 
+int greenCount = 0; 
+int blueCount = 0; 
+int purple_pinkCount = 0; 
+*/ 
+// FUNCTIONS START HERE 
+void configureAllSensors() //Trivial 
+{ 
+BrainInertial.calibrate(); 
+wait(2,seconds); 
+BrainInertial.setHeading(0,degrees); 
+BrainInertial.setRotation(0,degrees); 
+MotorLeft.setPosition(0,turns); 
+MotorRight.setPosition(0,turns); 
+Brain.Screen.clearScreen(); 
+Brain.Screen.setFont(mono15); 
+Optical3.setLight(ledState::on); 
+} 
+void pressAndRelease()  //Trivial 
+{ 
+while (!TouchLED1.pressing()) 
+{ 
+wait(1, msec); 
+} 
+while (TouchLED1.pressing()) 
+{ 
+wait(1, msec); 
+35 
+ 
+ 
+  } 
+} 
+ 
+// Determines width of pencils 
+double calibrateSize()  //Non-trivial (1) 
+{ 
+  Brain.Screen.setCursor(1, 1); 
+  Brain.Screen.print("Calibration process"); 
+ 
+  // Enter One and wait for touch 
+  Brain.Screen.setCursor(3, 1); 
+  Brain.Screen.print("Place in one pencil"); 
+  pressAndRelease(); 
+  int oneDist = Distance2.objectDistance(mm); 
+  
+  // Enter three and wait for touch 
+  Brain.Screen.setCursor(4, 1); 
+  Brain.Screen.print("Place in three more"); 
+  pressAndRelease(); 
+  int fourDist = Distance2.objectDistance(mm); 
+ 
+  // Calculate delta distance and divide by three for width of pencil (estimate) 
+  double widthPencil = ((oneDist - fourDist)/3.0); 
+ 
+  return widthPencil; // return width of pencil 
+} 
+ 
+// Function for calculating #tools taking width of pencil as parameter 
+int countTools(double widthPencil)  //Non-trivial (2) 
+{ 
+  const int traySize = 145; //the loading tray is 145mm long 
+ 
+  Brain.Screen.setCursor(5, 1); 
+  Brain.Screen.print("Place in the rest"); 
+  pressAndRelease(); 
+ 
+  int loadedDistance = Distance2.objectDistance(mm); // The distance from sensor to closest 
+pencil 
+  int occupiedDistance = traySize - loadedDistance; // The distance covered by the pencils 
+ 
+  int amountPencils = (int) ((occupiedDistance / widthPencil) + 0.5); //rounding with +0.5 & 
+int casting 
+  
+  Brain.Screen.setCursor(6, 1); 
+  Brain.Screen.print("Estimated Amount:"); 
+  Brain.Screen.setCursor(7, 1); 
+  Brain.Screen.print("~%d (+/- 1)", amountPencils); 
+  return amountPencils; 
+} 
+ 
+// Returns an integer value that corresponds with a hue range 
+int colorDetect() //Non-trivial (3) 
+{ 
+  int hue = Optical3.hue(); 
+ 
+  Brain.Screen.clearScreen(); 
+ 
+  // RED (0–18 or 351–360) 
+  if (hue < 18 || hue >= 351) 
+36 
+ 
+ 
+  { 
+    Brain.Screen.setCursor(1, 1); 
+    Brain.Screen.print("RED"); 
+    
+    Brain.Screen.setCursor(2, 1); 
+    Brain.Screen.print("Hue: %d", hue); 
+ 
+    return 1; 
+  } 
+ 
+  // ORANGE/YELLOW (18–54) 
+  else if (hue < 54) 
+  { 
+    Brain.Screen.setCursor(1, 1); 
+    Brain.Screen.print("ORANGE/YELLOW"); 
+    
+    Brain.Screen.setCursor(2, 1); 
+    Brain.Screen.print("Hue: %d", hue); 
+ 
+    return 2; 
+  } 
+ 
+  // GREEN (54–153) 
+  else if (hue < 153) 
+  { 
+    Brain.Screen.setCursor(1, 1); 
+    Brain.Screen.print("GREEN"); 
+    
+    Brain.Screen.setCursor(2, 1); 
+    Brain.Screen.print("Hue: %d", hue); 
+ 
+    return 3; 
+  } 
+ 
+  // BLUE (153–270) 
+  else if (hue < 270) 
+  { 
+    Brain.Screen.setCursor(1, 1); 
+    Brain.Screen.print("BLUE"); 
+    
+    Brain.Screen.setCursor(2, 1); 
+    Brain.Screen.print("Hue: %d", hue); 
+ 
+    return 4; 
+  } 
+ 
+  // PURPLE / PINK (270–356) 
+  else if (hue < 356) 
+  { 
+    Brain.Screen.setCursor(1, 1); 
+    Brain.Screen.print("PURPLE/PINK"); 
+    
+    Brain.Screen.setCursor(2, 1); 
+    Brain.Screen.print("Hue: %d", hue); 
+ 
+    return 5; 
+  } 
+ 
+  Brain.Screen.setCursor(1, 1); 
+37 
+ 
+ 
+  Brain.Screen.print("RED"); 
+    
+  Brain.Screen.setCursor(2, 1); 
+  Brain.Screen.print("Hue: %d", hue); 
+ 
+  return 1; 
+} 
+ 
+// Aligns Chromabot to corresponding box 
+// Box placement order: red, orange/yellow, green, blue, purple/pink 
+void alignBox() //Non-trivial (4) 
+{ 
+  const int TREAD = 200; //Circumference of motor-encoded wheels 
+  const int BOX_LENGTH = 207; //Assuming boxes are stuck next to each other 
+ 
+  int colorInt = colorDetect(); 
+  const int speed = 15; 
+ 
+  // Getting to red box 
+  if (colorInt == 1) // (1 = red) 
+  { 
+    while (MotorRight.position(turns) * TREAD < 2 * BOX_LENGTH) // Going to red only from the 
+right (since box is leftmost) 
+    { 
+      if (TouchLED1.pressing()) 
+    { 
+      dump(); 
+      Brain.programStop(); 
+    } 
+ 
+      MotorLeft.spin(forward, speed, percent); 
+      MotorRight.spin(forward, speed, percent); 
+    } 
+ 
+    MotorLeft.stop(); 
+    MotorRight.stop(); 
+  } 
+ 
+  // Getting to orange/yellow box 
+  else if (colorInt == 2 && MotorRight.position(turns) * TREAD > 1 * BOX_LENGTH) // Going to 
+orange/yellow from the left 
+  { 
+    while (MotorRight.position(turns) * TREAD > 1 * BOX_LENGTH) 
+    { 
+      if (TouchLED1.pressing()) 
+      { 
+        dump(); 
+        Brain.programStop(); 
+      } 
+ 
+      MotorLeft.spin(reverse, speed, percent); 
+      MotorRight.spin(reverse, speed, percent); 
+    } 
+ 
+    MotorLeft.stop(); 
+    MotorRight.stop(); 
+  } 
+ 
+38 
+ 
+ 
+  else if (colorInt == 2 && MotorRight.position(turns) * TREAD < 1 * BOX_LENGTH) // Going to 
+orange/yellow from the right 
+  { 
+    while (MotorRight.position(turns) * TREAD < 1 * BOX_LENGTH) 
+    { 
+      if (TouchLED1.pressing()) 
+      { 
+        dump(); 
+        Brain.programStop(); 
+      } 
+ 
+      MotorLeft.spin(forward, speed, percent); 
+      MotorRight.spin(forward, speed, percent); 
+    } 
+ 
+    MotorLeft.stop(); 
+    MotorRight.stop(); 
+  } 
+ 
+  // Getting to green box 
+  else if (colorInt == 3 && MotorRight.position(turns) * TREAD > 0) // Going to green from the 
+left 
+  { 
+    while (MotorRight.position(turns) * TREAD > 0) 
+    { 
+      if (TouchLED1.pressing()) 
+      { 
+        dump(); 
+        Brain.programStop(); 
+      } 
+ 
+      MotorLeft.spin(reverse, speed, percent); 
+      MotorRight.spin(reverse, speed, percent); 
+    } 
+ 
+    MotorLeft.stop(); 
+    MotorRight.stop(); 
+  } 
+ 
+  else if (colorInt == 3 && MotorRight.position(turns) * TREAD < 0) //Going to green from the 
+right 
+  { 
+    while (MotorRight.position(turns) * TREAD < 0) 
+    { 
+      if (TouchLED1.pressing()) 
+      { 
+        dump(); 
+        Brain.programStop(); 
+      } 
+ 
+      MotorLeft.spin(forward, speed, percent); 
+      MotorRight.spin(forward, speed, percent); 
+    } 
+ 
+    MotorLeft.stop(); 
+    MotorRight.stop(); 
+  } 
+ 
+  // Getting to blue box 
+39 
+ 
+ 
+  else if (colorInt == 4 && MotorRight.position(turns) * TREAD > -1 * BOX_LENGTH) // Going to 
+blue from the left 
+  { 
+    while (MotorRight.position(turns) * TREAD > -1 * BOX_LENGTH) 
+    { 
+      if (TouchLED1.pressing()) 
+      { 
+        dump(); 
+        Brain.programStop(); 
+      } 
+ 
+      MotorLeft.spin(reverse, speed, percent); 
+      MotorRight.spin(reverse, speed, percent); 
+    } 
+ 
+    MotorLeft.stop(); 
+    MotorRight.stop(); 
+  } 
+ 
+  else if (colorInt == 4 && MotorRight.position(turns) * TREAD < -1 * BOX_LENGTH) // Going to 
+blue from the right 
+  { 
+    while (MotorRight.position(turns) * TREAD < -1 * BOX_LENGTH) 
+    { 
+      if (TouchLED1.pressing()) 
+      { 
+        dump(); 
+        Brain.programStop(); 
+      } 
+ 
+      MotorLeft.spin(forward, speed, percent); 
+      MotorRight.spin(forward, speed, percent); 
+    } 
+ 
+    MotorLeft.stop(); 
+    MotorRight.stop(); 
+  } 
+ 
+  // Getting to purple/pink box 
+  else if (colorInt == 5) // Going to purple/pink box only from the right (since box is 
+rightmost) 
+  { 
+    while (MotorRight.position(turns) * TREAD > -2 * BOX_LENGTH) 
+    { 
+      if (TouchLED1.pressing()) 
+      { 
+        dump(); 
+        Brain.programStop(); 
+      } 
+ 
+      MotorLeft.spin(reverse, speed, percent); 
+      MotorRight.spin(reverse, speed, percent); 
+    } 
+ 
+    MotorLeft.stop(); 
+    MotorRight.stop(); 
+  } 
+} 
+ 
+40 
+ 
+ 
+// Drops the pencil through gear turning 
+void drop() //Trivial 
+{ 
+  GearMotorLeft.spin(forward, 10, percent); 
+  GearMotorRight.spin(forward, 10, percent); 
+  wait(0.75, seconds); 
+ 
+  GearMotorLeft.stop(); 
+  GearMotorRight.stop(); 
+  wait(1, seconds); 
+} 
+ 
+// Stop event for bumper: halt all motors 
+void stopNow()  //Trivial 
+{ 
+    MotorLeft.stop(); 
+    MotorRight.stop(); 
+    GearMotorLeft.stop(); 
+    GearMotorRight.stop(); 
+ 
+    Brain.Screen.clearScreen(); 
+    Brain.Screen.setCursor(1,1); 
+    Brain.Screen.print("Chromabot stopped"); 
+ 
+    Brain.programStop(); 
+} 
+ 
+void timeDisplay(double calibrationTime, double alignTime, int numPencil) //Non-trivial (5) 
+{ 
+  Brain.Screen.clearScreen(); 
+ 
+  // Calibration time 
+  Brain.Screen.setCursor(1, 1); 
+  Brain.Screen.print("Calibration time: "); 
+  Brain.Screen.setCursor(2, 1); 
+  Brain.Screen.print("%f sec", calibrationTime); 
+ 
+  // Organizing time 
+  Brain.Screen.setCursor(3, 1); 
+  Brain.Screen.print("Organizing time: "); 
+  Brain.Screen.setCursor(4, 1); 
+  Brain.Screen.print("%f sec", alignTime); 
+ 
+  double timePerPencil = (alignTime / numPencil); 
+ 
+  // Average time per pencil 
+  Brain.Screen.setCursor(5, 1); 
+  Brain.Screen.print("Average time/pencil: "); 
+  Brain.Screen.setCursor(6, 1); 
+  Brain.Screen.print("%f sec/pencil", timePerPencil); 
+} 
+ 
+void dump() //Non-trivial (6) 
+{ 
+  const int TREAD = 200; 
+  const int BOX_LENGTH = 207; 
+ 
+  int speed = 15; 
+ 
+41 
+ 
+ 
+  Brain.Screen.clearScreen(); 
+  Brain.Screen.setCursor(4, 1); 
+  Brain.Screen.print("Dumping..."); 
+ 
+  while (MotorRight.position(turns) * TREAD < 3 * BOX_LENGTH) 
+  { 
+    MotorLeft.spin(forward, speed, percent); 
+    MotorRight.spin(forward, speed, percent); 
+  } 
+ 
+  MotorLeft.stop(); 
+  MotorRight.stop(); 
+ 
+  wait(1, seconds); 
+ 
+  GearMotorLeft.spin(forward, speed, percent); 
+  GearMotorRight.spin(reverse, speed, percent); 
+ 
+  wait(6, seconds); 
+ 
+  GearMotorLeft.stop(); 
+  GearMotorRight.stop(); 
+} 
+ 
+//MAIN FUNCTION STARTS HERE 
+int main() 
+{ 
+  vexcodeInit(); 
+  configureAllSensors(); 
+ 
+  //emergency stop 
+  Bumper4.pressed(stopNow); 
+ 
+  Brain.Timer.reset(); 
+  double pencilWidth = calibrateSize(); 
+  double calibrationTime = Brain.Timer.value(); 
+  int max = countTools(pencilWidth); 
+  
+  pressAndRelease(); 
+ 
+  Brain.Timer.reset(); 
+  for (int i = 0; i < (max + 3); i++) 
+  { 
+    alignBox(); 
+ 
+    if (TouchLED1.pressing()) 
+    { 
+      dump(); 
+      Brain.programStop(); 
+    } 
+ 
+    drop(); 
+  } 
+  double alignTime = Brain.Timer.value(); 
+  timeDisplay(calibrationTime,alignTime, max); 
+ 
+  // Show favourite colour after sorting 
+  //displayFavouriteColour(); 
+  wait(10, seconds); 
+42 
+ 
+ 
+ 
+  Brain.programStop(); 
+} 
+ 
